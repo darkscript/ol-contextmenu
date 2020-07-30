@@ -7,6 +7,7 @@ body {
   font: 1em/1.5 BlinkMacSystemFont,-apple-system,"Segoe UI","Roboto","Oxygen","Ubuntu","Cantarell","Fira Sans","Droid Sans","Helvetica Neue","Helvetica","Arial",sans-serif;
   color: #222;
   font-weight: 400;
+  -webkit-touch-callout: none;
 }
 
 #map {
