@@ -1,12 +1,23 @@
 /* global ol, ContextMenu */
 var view = new ol.View({ center: [0, 0], zoom: 4 }),
   vectorLayer = new ol.layer.Vector({ source: new ol.source.Vector() }),
-  baseLayer = new ol.layer.Tile({ source: new ol.source.OSM() }),
+  baseLayer = new ol.layer.Tile({
+    source: new ol.source.OSM({
+      crossOrigin: null,
+    }),
+    crossOrigin: null,
+  }),
   map = new ol.Map({
     target: 'map',
     view: view,
     layers: [baseLayer, vectorLayer],
   });
+
+var myElement = document.getElementById('map');
+
+// create a simple instance
+// by default, it only adds horizontal recognizers
+var mc = new Hammer(myElement);
 
 var contextmenu_items = [
   {
@@ -51,7 +62,7 @@ var contextmenu = new ContextMenu({
 });
 map.addControl(contextmenu);
 
-contextmenu.on('open', function (evt) {
+contextmenu.on(['open', 'press'], function (evt) {
   var feature = map.forEachFeatureAtPixel(evt.pixel, function (ft, l) {
     return ft;
   });
@@ -66,6 +77,21 @@ contextmenu.on('open', function (evt) {
     contextmenu.extend(contextmenu_items);
     contextmenu.extend(contextmenu.getDefaultItems());
   }
+  if (evt.type === 'press') {
+    contextmenu.Internal.openMenu(evt.pixel, evt.coordinate);
+  }
+});
+
+// listen to events...
+mc.on('panleft panright tap press', function (evt) {
+  // myElement.textContent = ev.type +" gesture detected.";
+  if (evt.type === 'press') {
+    contextmenu.dispatchEvent({
+      type: 'press',
+      pixel: [evt.center.x, evt.center.y],
+      coordinate: map.getCoordinateFromPixel([evt.center.x, evt.center.y]),
+    });
+  }
 });
 
 map.on('pointermove', function (e) {
@@ -76,6 +102,19 @@ map.on('pointermove', function (e) {
 
   map.getTargetElement().style.cursor = hit ? 'pointer' : '';
 });
+
+/**
+ * Hide context menu when click outside
+ * TODO: May not work on long press, get a solution
+ */
+// map.on('singleclick', function (e) {
+//   var pixel = map.getEventPixel(e.originalEvent);
+//   var hit = map.hasFeatureAtPixel(pixel);
+//
+//   if (!hit) {
+//     contextmenu.close();
+//   }
+// });
 
 // from https://github.com/DmitryBaranovskiy/raphael
 function elastic(t) {
